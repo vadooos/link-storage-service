@@ -18,6 +18,10 @@ func Open(dsn string) (*LinkRepository, error) {
 	return &LinkRepository{db: db}, err
 }
 
+func (r *LinkRepository) Close() error {
+	return r.db.Close()
+}
+
 func (r *LinkRepository) List(limit int, offset int) ([]model.Link, error) {
 	const q = `
 		SELECT id, short_code, original_url, created_at::text, visits 
