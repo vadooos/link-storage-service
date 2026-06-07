@@ -1,7 +1,3 @@
-CREATE DATABASE link_storage;
-
-\connect link_storage
-
 CREATE TABLE IF NOT EXISTS links
 (
     id           BIGSERIAL PRIMARY KEY,
@@ -10,3 +6,4 @@ CREATE TABLE IF NOT EXISTS links
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     visits       BIGINT      NOT NULL DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS idx_links_short_code ON links (short_code);

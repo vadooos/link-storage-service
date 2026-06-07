@@ -14,8 +14,17 @@ type LinkRepository struct {
 }
 
 func Open(dsn string) (*LinkRepository, error) {
+	err := runMigrations(dsn)
+	if err != nil {
+		return nil, err
+	}
+
 	db, err := sql.Open("postgres", dsn)
-	return &LinkRepository{db: db}, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &LinkRepository{db: db}, nil
 }
 
 func (r *LinkRepository) Close() error {
