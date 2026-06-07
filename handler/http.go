@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"link-storage-service/dto"
 	"link-storage-service/repository"
 	"link-storage-service/service"
 	"log"
@@ -51,13 +52,12 @@ func (h *Handler) links(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{"items": links, "limit": limit, "offset": offset})
+	resp := dto.ListLinksResponse{Items: dto.LinkItemsFromModel(links), Limit: limit, Offset: offset}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (h *Handler) createLink(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		URL string `json:"url"`
-	}
+	var req dto.CreateLinkRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "decode JSON error: "+err.Error())
 		return
@@ -73,7 +73,7 @@ func (h *Handler) createLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"short_code": code})
+	writeJSON(w, http.StatusOK, dto.CreateLinkResponse{ShortCode: code})
 }
 
 func (h *Handler) getLinkByCode(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func (h *Handler) getLinkByCode(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"url": link.OriginalURL, "visits": link.Visits})
+	writeJSON(w, http.StatusOK, dto.GetLinkResponse{URL: link.OriginalURL, Visits: link.Visits})
 }
 
 func (h *Handler) deleteLink(w http.ResponseWriter, r *http.Request) {
@@ -103,12 +103,12 @@ func (h *Handler) stats(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"short_code": link.ShortCode,
-		"url":        link.OriginalURL,
-		"visits":     link.Visits,
-		"created_at": link.CreatedAt,
-	})
+	resp := dto.LinkStatsResponse{
+		ShortCode: link.ShortCode,
+		URL:       link.OriginalURL,
+		Visits:    link.Visits,
+		CreatedAt: link.CreatedAt}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func decodeJSON(r *http.Request, dst any) error {
@@ -134,7 +134,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, map[string]string{"error": msg})
+	writeJSON(w, status, dto.ErrorResponse{Error: msg})
 }
 
 func respondError(w http.ResponseWriter, err error) {
